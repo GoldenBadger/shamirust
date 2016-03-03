@@ -1,3 +1,3 @@
-extern crate num;
+extern crate gmp;
 
 pub mod shamir;
