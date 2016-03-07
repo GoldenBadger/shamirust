@@ -19,7 +19,7 @@ pub enum ShamirError {
 
 pub type Result<T> = result::Result<T, ShamirError>;
 
-pub fn generate_shares(secret: &Vec<u8>,
+pub fn generate_shares(secret: &[u8],
                        num_pieces: u64,
                        required_pieces: u64)
                        -> Result<Vec<ShamirShare>> {
@@ -62,4 +62,33 @@ pub fn generate_shares(secret: &Vec<u8>,
         });
     }
     Ok(pieces)
+}
+
+pub fn rebuild_secret(shares: &[ShamirShare]) -> Result<Vec<u8>> {
+    let prime = &shares[0].prime;
+    for share in shares {
+        if *prime != share.prime {
+            return Err(ShamirError::PrimeMismatch);
+        }
+    }
+    let mut inputs: Vec<i64> = Vec::new();
+    for i in 0..shares.len() {
+        inputs.push(shares[i].input as i64);
+    }
+
+    let mut sum = mpz::Mpz::zero();
+    for i in 0..shares.len() {
+        let mut numerator = mpz::Mpz::one();
+        let mut denominator = mpz::Mpz::one();
+        for j in 0..shares.len() {
+            if j == i {
+                continue;
+            }
+            numerator = (numerator * mpz::Mpz::from(-inputs[j])) % prime;
+            denominator = (denominator * mpz::Mpz::from(inputs[i] - inputs[j])) % prime;
+        }
+        let tmp = &shares[i].data * numerator * denominator.invert(prime).unwrap();
+        sum = (sum + prime + tmp) % prime;
+    }
+    Ok(Into::<Option<Vec<u8>>>::into(&sum).unwrap())
 }
