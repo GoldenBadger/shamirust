@@ -12,13 +12,33 @@ pub struct ShamirShare {
 
 #[derive(Debug)]
 pub enum ShamirError {
-    DuplicateInput,
     InvalidArgument(String),
     PrimeMismatch,
 }
 
 pub type Result<T> = result::Result<T, ShamirError>;
 
+/// Generates a Vec<ShamirShare> from a given secret.
+///
+/// # Failures
+///
+/// Returns ShamirError::InvalidArgument when the number of pieces generated is
+/// less than the number of pieces required to rebuild, and when either num_pieces
+/// or required_pieces is 0.
+///
+/// # Examples
+///
+/// ```
+/// use shamir::{ShamirShare, generate_shares};
+///
+/// let data: Vec<u8> = Vec::from("Hello World");
+/// let result = generate_shares(data.as_slice(), 5, 3);
+/// let shares: Vec<ShamirShare>;
+/// match result {
+///     Ok(s) => shares = s,
+///     Err(err) => panic!("could not generate shares"),
+/// }
+/// ```
 pub fn generate_shares(secret: &[u8],
                        num_pieces: u64,
                        required_pieces: u64)
