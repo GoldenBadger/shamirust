@@ -84,6 +84,28 @@ pub fn generate_shares(secret: &[u8],
     Ok(pieces)
 }
 
+/// Rebuild a secret from a given set of ShamirShares.
+///
+/// # Failures
+///
+/// If the set of shares do not share a common prime number, then they
+/// definitely did not all come from the same secret. In this case, we return
+/// ShamirError::PrimeMismatch.
+///
+/// # Examples
+///
+/// ```
+/// use shamir::{ShamirShare, generate_shares, rebuild_secret};
+///
+/// let data: Vec<u8> = Vec::from("Hello World");
+/// let shares = generate_shares(data.as_slice(), 5, 3).unwrap();
+/// let secret: Vec<u8>;
+/// let result = rebuild_secret(shares.as_slice());
+/// match result {
+///     Ok(sec) => secret = sec,
+///     Err(err) => panic!("error rebuilding secret"),
+/// }
+/// ```
 pub fn rebuild_secret(shares: &[ShamirShare]) -> Result<Vec<u8>> {
     let prime = &shares[0].prime;
     for share in shares {
