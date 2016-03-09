@@ -2,6 +2,7 @@
 mod tests;
 
 use gmp::{mpz, rand};
+use std::fmt;
 use std::result;
 
 pub struct ShamirShare {
@@ -14,6 +15,18 @@ pub struct ShamirShare {
 pub enum ShamirError {
     InvalidArgument(String),
     PrimeMismatch,
+}
+
+impl fmt::Display for ShamirError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ShamirError::InvalidArgument(ref err) => write!(f, "Invalid argument: {}", err),
+            ShamirError::PrimeMismatch => {
+                write!(f,
+                       "Prime mismatch: not all shares have the same prime number.")
+            }
+        }
+    }
 }
 
 pub type Result<T> = result::Result<T, ShamirError>;
