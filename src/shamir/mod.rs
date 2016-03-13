@@ -145,5 +145,5 @@ pub fn rebuild_secret(shares: &[ShamirShare]) -> Result<Vec<u8>> {
         let tmp = &shares[i].data * numerator * denominator.invert(prime).unwrap();
         sum = (sum + prime + tmp) % prime;
     }
-    Ok(Into::<Option<Vec<u8>>>::into(&sum).unwrap())
+    Ok(Into::<Vec<u8>>::into(&sum))
 }
