@@ -1,11 +1,11 @@
 [package]
 name = "shamirust"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Terry Bolt <bolt.terry@gmail.com>"]
 
 [lib]
 name = "shamir"
 
 [dependencies]
-rust-gmp = "0.3.0"
 rand = "0.3.14"
+rust-gmp = "0.3.0"

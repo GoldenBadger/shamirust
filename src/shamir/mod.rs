@@ -31,13 +31,13 @@ impl fmt::Display for ShamirError {
 
 pub type Result<T> = result::Result<T, ShamirError>;
 
-/// Generates a Vec<ShamirShare> from a given secret.
+/// Generates a Vec<`ShamirShare`> from a given secret.
 ///
 /// # Failures
 ///
-/// Returns ShamirError::InvalidArgument when the number of pieces generated is
-/// less than the number of pieces required to rebuild, and when either num_pieces
-/// or required_pieces is 0.
+/// Returns `ShamirError::InvalidArgument` when the number of pieces generated is
+/// less than the number of pieces required to rebuild, and when either
+/// `num_pieces` or `required_pieces` is 0.
 ///
 /// # Examples
 ///
@@ -59,12 +59,11 @@ pub fn generate_shares(secret: &[u8],
     if required_pieces > num_pieces {
         return Err(ShamirError::InvalidArgument("required_pieces must be less than or equal to \
                                                  num_pieces"
-                                                    .to_string()));
+            .to_string()));
     }
-    if required_pieces <= 0 || num_pieces <= 0 {
-        return Err(ShamirError::InvalidArgument("required_pieces or num_pieces cannot be less \
-                                                 than or equal to 0"
-                                                    .to_string()));
+    if required_pieces == 0 || num_pieces == 0 {
+        return Err(ShamirError::InvalidArgument("required_pieces or num_pieces cannot be 0"
+            .to_string()));
     }
     let prime_size: u64 = (secret.len() as f64 * 1.1 * 8.0) as u64;
     let mut randstate = rand::RandState::new_mt();
@@ -83,8 +82,8 @@ pub fn generate_shares(secret: &[u8],
     let mut pieces: Vec<ShamirShare> = Vec::new();
     for x in 1..num_pieces + 1 {
         let mut total = mpz::Mpz::zero();
-        for i in 0..required_pieces as usize {
-            let degree_total = &coefficients[i] * (mpz::Mpz::from(x).pow(i as u32));
+        for (i, coefficient) in coefficients.iter().enumerate().take(required_pieces as usize) {
+            let degree_total = coefficient * (mpz::Mpz::from(x).pow(i as u32));
             total = total + degree_total;
         }
         total = total.modulus(&prime);
@@ -97,13 +96,13 @@ pub fn generate_shares(secret: &[u8],
     Ok(pieces)
 }
 
-/// Rebuild a secret from a given set of ShamirShares.
+/// Rebuild a secret from a given set of `ShamirShares`.
 ///
 /// # Failures
 ///
 /// If the set of shares do not share a common prime number, then they
 /// definitely did not all come from the same secret. In this case, we return
-/// ShamirError::PrimeMismatch.
+/// `ShamirError::PrimeMismatch`.
 ///
 /// # Examples
 ///
@@ -121,14 +120,12 @@ pub fn generate_shares(secret: &[u8],
 /// ```
 pub fn rebuild_secret(shares: &[ShamirShare]) -> Result<Vec<u8>> {
     let prime = &shares[0].prime;
+    let mut inputs: Vec<i64> = Vec::new();
     for share in shares {
         if *prime != share.prime {
             return Err(ShamirError::PrimeMismatch);
         }
-    }
-    let mut inputs: Vec<i64> = Vec::new();
-    for i in 0..shares.len() {
-        inputs.push(shares[i].input as i64);
+        inputs.push(share.input as i64);
     }
 
     let mut sum = mpz::Mpz::zero();
